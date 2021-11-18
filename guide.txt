@@ -1,0 +1,11 @@
+1. Bikin tabel database di docker/mysql/initdb.d/schema.sql, tambah aja dibawahnya. Kalo mau seed data awal bisa insert di testdata.sql
+2. Isi model di folder models, samain kyk yg ada di tabel database mysql tadi
+3. Isi schema, biasanya ada create sama update buat classnya
+bedanya model sama schema?
+model itu buat yg persis ada sama di database, kalo schema sesuain sama request api.
+contohnya di tabel user modelnya ada id tapi dia auto increment / keisi otomatis, jadi di schema user gaperlu ada id
+4. Tambah endpoint di main.py, jangan lupa import dulu model sama schemanya. tiap data bikin CRUD simple aja
+5. Kalo mau run
+docker-compose up -d --build
+kalo mau matiin
+docker-compose down --remove-orphans
