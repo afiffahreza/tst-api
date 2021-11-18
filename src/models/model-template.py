@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String
-from pydantic import BaseModel
 from db import Base
 from db import ENGINE
 
@@ -10,11 +9,6 @@ class UserTable(Base):
     name = Column(String(30), nullable=False)
     age = Column(Integer)
 
-
-class User(BaseModel):
-    id: int
-    name: str
-    age: int
 
 
 def main():
