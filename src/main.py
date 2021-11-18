@@ -137,10 +137,18 @@ async def read_users(current_user: User = Depends(get_current_active_user)):
     users = session.query(UserTable).all()
     return users
 
-@app.get("/users/{user_id}")
-async def read_user(user_id: int, current_user: User = Depends(get_current_active_user)):
+@app.get("/users/id/{user_id}")
+async def read_user_by_id(user_id: int, current_user: User = Depends(get_current_active_user)):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     user = session.query(UserTable).\
         filter(UserTable.id == user_id).first()
+    return user
+
+@app.get("/users/{username}")
+async def read_user_by_username(username: str, current_user: User = Depends(get_current_active_user)):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    user = session.query(UserTable).\
+        filter(UserTable.username == username).first()
     return user
