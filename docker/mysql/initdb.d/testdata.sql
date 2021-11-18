@@ -1,3 +1,1 @@
--- INSERT INTO user (name, age) VALUES ("a", 15);
--- INSERT INTO user (name, age) VALUES ("b", 18);
--- INSERT INTO user (name, age) VALUES ("c", 20);
+INSERT INTO user (username, hashed_password, email, name, disabled) VALUES ("asdf", "$2b$12$hGKDOwG56pxrtLj8644EHOEIrLHLc7T7JtwSmp.//cV12LuuEQuzu", "test@example.com", "Test", 0);

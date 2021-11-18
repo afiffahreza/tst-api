@@ -41,11 +41,6 @@ def get_user(db, username: str):
     user = session.query(UserTable).\
         filter(UserTable.username == username).first()
     if user:
-        # print("masuk")
-        # temp = User()
-        # temp.username = user.username
-        # tempUser = UserInDB(temp)
-        # tempUser.hashed_password = user.hashed_password
         return user
 
 
