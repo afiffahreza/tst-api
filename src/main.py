@@ -9,9 +9,13 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from models.user import UserTable
 from schemas.user import *
+from schemas.hasil import *
+from schemas.paket import *
 from src.db import conn
 from models.soal import soal
 from models.jawaban import jawaban
+from models.hasil import HasilTable
+from models.paket import PaketTable
 
 
 # secret key string from openssl rand -hex 32
@@ -192,3 +196,38 @@ async def write_jawaban(kodeSoal:int, username:str, current_user: User = Depends
 @app.get('/jawaban/{kodeSoal}')
 async def read_jawaban(kodeSoal:int, username:str, current_user: User = Depends(get_current_active_user)):
     return conn.execute(jawaban.select().where(jawaban.c.kodeSoal == kodeSoal)).fetchall
+
+# Get hasil to diri sendiri by paketSoal
+@app.get("/hasil/me/{paket_id}")
+async def read_user_by_id(paket_id: str, current_user: User = Depends(get_current_active_user)):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    paket = session.query(HasilTable).\
+        filter(HasilTable.kodePaket == paket_id).first()
+    return paket
+
+# Post hasil TO diri sendiri based on paketSoal
+@app.post("/newHasil", response_model=User)
+async def new_hasil(hasil: HasilCreate):
+    newPaket = hasil.dict()
+    hasilData = HasilTable()
+    hasilData.username = newPaket['username']
+    hasilData.kodePaket = hasilData['kodePaket']
+    hasilData.nilai = hasilData['nilai']
+    hasilData.ranking = hasilData['nilai']
+    session.add(hasilData)
+    session.commit()
+    if hasilData:
+        return newPaket
+    raise HTTPException(status_code=400, detail=f'Bad request')
+    
+# Get hasil TO diri sendiri based on paketSoal
+@app.get("/hasil/me/{paket_id}")
+async def read_hasil_by_paket_id(paket_id: str, current_user: User = Depends(get_current_active_user)):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    paket = session.query(HasilTable).\
+        filter(HasilTable.username == User.username and
+               HasilTable.kodePaket == paket_id).first()
+    return paket
+
