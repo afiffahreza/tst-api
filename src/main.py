@@ -9,6 +9,10 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from models.user import UserTable
 from schemas.user import *
+from src.db import conn
+from models.soal import soal
+from models.jawaban import jawaban
+
 
 # secret key string from openssl rand -hex 32
 SECRET_KEY = "02b55af9a51f87aea76b6406f5667f1341985add1c527afcbd2fcabb46318ab3"
@@ -152,3 +156,39 @@ async def read_user_by_username(username: str, current_user: User = Depends(get_
     user = session.query(UserTable).\
         filter(UserTable.username == username).first()
     return user
+
+#masukin soal ke database
+@app.post('/soal')
+async def write_soal(kodeSoal:int, current_user: User = Depends(get_current_active_user)):
+    return conn.execute(soal.insert().values(
+        kodeSoal=soal.kodeSoal,
+        pertanyaan=soal.pertanyaan,
+        pilihanJawaban=soal.pilihanJawaban,
+        kunciJawaban=soal.kunciJawaban,
+        kodePaket=soal.kodePaket
+    )).fetchall()
+
+#retrieve soal based on kodePaket
+@app.get('/soal/{kodePaket}')
+async def read_soal(kodePaket:str, current_user: User = Depends(get_current_active_user)):
+    return conn.execute(soal.select().where(soal.c.kodePaket == kodePaket)).fetchall
+
+#masukin jawaban ke database
+@app.post('jawaban')
+async def write_jawaban(kodeSoal:int, username:str, current_user: User = Depends(get_current_active_user)):
+    return conn.execute(jawaban.insert().values(
+        username=jawaban.username,
+        kodePaket=jawaban.kodePaket,
+        kodeSoal=jawaban.kodeSoal,
+        jawaban=jawaban.jawaban,
+    )).fetchall()
+
+#retrieve kunci jawaban dari soal based on kodeSoal
+#@app.get('/jawaban/soal/{kodeSoal}')
+#async def read_kunci(kodeSoal:int, current_user: User = Depends(get_current_active_user)):
+    #
+
+#retrieve jawaban based on kodeSoal
+@app.get('/jawaban/{kodeSoal}')
+async def read_jawaban(kodeSoal:int, username:str, current_user: User = Depends(get_current_active_user)):
+    return conn.execute(jawaban.select().where(jawaban.c.kodeSoal == kodeSoal)).fetchall

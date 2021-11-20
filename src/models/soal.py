@@ -4,7 +4,7 @@ from db import ENGINE
 
 
 # Bikin class model
-class SoalTable(Base):
+class soal(Base):
     __tablename__ = 'soal'
     kodeSoal = Column(Integer, primary_key=True, nullable=False)
     pertanyaan = Column(String(256))
