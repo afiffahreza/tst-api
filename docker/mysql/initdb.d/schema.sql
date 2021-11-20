@@ -28,3 +28,20 @@ CREATE TABLE jawaban (
     FOREIGN KEY (kodePaket) REFERENCES paketSoal(kodePaket),
     FOREIGN KEY (kodeSoal) REFERENCES soal(kodeSoal)
 );
+
+CREATE TABLE hasil (
+    username VARCHAR(30) NOT  NULL,
+    kodePaket CHAR(16) NOT NULL,
+    nilai INT,
+    ranking INT ,
+    PRIMARY KEY (username, kodePaket),
+    FOREIGN KEY (username) REFERENCES userusername),
+    FOREIGN KEY (kodePaket) REFERENCES paketSoal(kodePaket),
+);
+
+CREATE TABLE paketSoal (
+    kodePaket CHAR(16) NOT NULL,
+    tanggal TIMESTAMP,
+    deskripsi VARCHAR(256),
+    PRIMARY KEY (kodePaket)
+);
