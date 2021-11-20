@@ -7,3 +7,8 @@ class PaketTable(BaseModel):
     kodePaket: str
     tanggal: Optional[DateTime] = None
     deskripsi: Optional[str] = None
+
+class PaketCreate(BaseModel):  # User Auth
+    kodePaket: str
+    tanggal: Optional[DateTime] = None
+    deskripsi: Optional[str] = None

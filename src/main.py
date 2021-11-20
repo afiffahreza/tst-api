@@ -199,7 +199,7 @@ async def read_jawaban(kodeSoal:int, username:str, current_user: User = Depends(
 
 # Get hasil to diri sendiri by paketSoal
 @app.get("/hasil/me/{paket_id}")
-async def read_user_by_id(paket_id: str, current_user: User = Depends(get_current_active_user)):
+async def read_hasil_by_id(paket_id: str, current_user: User = Depends(get_current_active_user)):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     paket = session.query(HasilTable).\
@@ -207,18 +207,18 @@ async def read_user_by_id(paket_id: str, current_user: User = Depends(get_curren
     return paket
 
 # Post hasil TO diri sendiri based on paketSoal
-@app.post("/newHasil", response_model=User)
-async def new_hasil(hasil: HasilCreate):
-    newPaket = hasil.dict()
+@app.post("/hasil", response_model=User)
+async def create_hasil(hasil: HasilCreate):
+    newHasil = hasil.dict()
     hasilData = HasilTable()
-    hasilData.username = newPaket['username']
+    hasilData.username = newHasil['username']
     hasilData.kodePaket = hasilData['kodePaket']
     hasilData.nilai = hasilData['nilai']
     hasilData.ranking = hasilData['nilai']
     session.add(hasilData)
     session.commit()
     if hasilData:
-        return newPaket
+        return newHasil
     raise HTTPException(status_code=400, detail=f'Bad request')
     
 # Get hasil TO diri sendiri based on paketSoal
@@ -231,3 +231,29 @@ async def read_hasil_by_paket_id(paket_id: str, current_user: User = Depends(get
                HasilTable.kodePaket == paket_id).first()
     return paket
 
+# Post paket baru
+@app.post("/paket/create")
+async def new_paket(paket: PaketCreate):
+    newPaket = paket.dict()
+    paketData = PaketTable()
+    paketData.kodePaket = paketData['kodePaket']
+    paketData.tanggal = paketData['tanggal']
+    paketData.deskripsi = paketData['deskripsi']
+    session.add(paketData)
+    session.commit()
+    if paketData:
+        return newPaket
+    raise HTTPException(status_code=400, detail=f'Bad request')
+    
+# Get paket all
+@app.get("/pakets/")
+async def read_pakets():
+    paket = session.query(PaketTable).all()
+    return paket
+
+# Get paket based paket_id
+@app.get("/pakets/{paket_id}")
+async def read_pakets(paket_id: str):
+    paket = session.query(PaketTable).\
+        filter(PaketTable.id == paket_id).first()
+    return paket
