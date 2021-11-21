@@ -5,8 +5,9 @@ from db import ENGINE
 
 class HasilTable(Base):
     __tablename__ = 'hasil'
-    username = Column(String(30), primary_key=True, nullable=False)
-    kodePaket = Column(String(16), primary_key=True, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String(30), nullable=False)
+    kodePaket = Column(String(30), nullable=False)
     nilai = Column(Integer)
     ranking = Column(Integer)
 

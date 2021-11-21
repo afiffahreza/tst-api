@@ -6,9 +6,9 @@ from db import ENGINE
 
 class PaketTable(Base):
     __tablename__ = 'paketSoal'
-    kodePaket = Column(String(16), primary_key=True, nullable=False)
-    tanggal = Column(DateTime)
-    deskripsi = Column(String(256))
+    kodePaket = Column(String(30), primary_key=True, nullable=False)
+    tanggal = Column(String(255))
+    deskripsi = Column(String(255))
 
 
 def main():

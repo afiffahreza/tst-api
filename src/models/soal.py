@@ -4,13 +4,14 @@ from db import ENGINE
 
 
 # Bikin class model
-class soal(Base):
+class SoalTable(Base):
     __tablename__ = 'soal'
-    kodeSoal = Column(Integer, primary_key=True, nullable=False)
-    pertanyaan = Column(String(256))
-    pilihanJawaban = Column(String(256))
-    kunciJawaban = Column(String)
-    kodePaket = Column(String(16), nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    kodeSoal = Column(Integer, nullable=False)
+    pertanyaan = Column(String(255))
+    pilihanJawaban = Column(String(255))
+    kunciJawaban = Column(String(255))
+    kodePaket = Column(String(30), nullable=False)
 
 def main():
     Base.metadata.create_all(bind=ENGINE)

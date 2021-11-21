@@ -1,4 +1,3 @@
-from logging import FATAL
 from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.sql.expression import false 
 from starlette.middleware.cors import CORSMiddleware
@@ -8,15 +7,17 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from models.user import UserTable
+from schemas.jawaban import Jawaban
+from schemas.pembelian import Pembelian
 from schemas.user import *
 from schemas.hasil import *
 from schemas.paket import *
-from src.db import conn
-from models.soal import soal
-from models.jawaban import jawaban
+from schemas.soal import *
+from models.soal import SoalTable
+from models.jawaban import JawabanTable
 from models.hasil import HasilTable
 from models.paket import PaketTable
-
+from models.pembelian import PembelianTable
 
 # secret key string from openssl rand -hex 32
 SECRET_KEY = "02b55af9a51f87aea76b6406f5667f1341985add1c527afcbd2fcabb46318ab3"
@@ -36,6 +37,10 @@ app.add_middleware(
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+@app.get("/")
+async def root():
+    return {"message": "go to /docs for full API endpoints"}
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -133,9 +138,11 @@ async def register(user: UserCreate):
     raise HTTPException(status_code=400, detail=f'Bad request')
 
 
-@app.get("/users/me/", response_model=User)
+@app.get("/users/me/")
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
-    return current_user
+    userme = session.query(UserTable).\
+        filter(UserTable.username == current_user.username).first()
+    return userme
 
 
 @app.get("/users")
@@ -163,58 +170,89 @@ async def read_user_by_username(username: str, current_user: User = Depends(get_
 
 #masukin soal ke database
 @app.post('/soal')
-async def write_soal(kodeSoal:int, current_user: User = Depends(get_current_active_user)):
-    return conn.execute(soal.insert().values(
-        kodeSoal=soal.kodeSoal,
-        pertanyaan=soal.pertanyaan,
-        pilihanJawaban=soal.pilihanJawaban,
-        kunciJawaban=soal.kunciJawaban,
-        kodePaket=soal.kodePaket
-    )).fetchall()
+async def create_soal(soal: Soal, current_user: User = Depends(get_current_active_user)):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    newSoal = soal.dict()
+    soalData = SoalTable()
+    soalData.kodeSoal=newSoal['kodeSoal']
+    soalData.pertanyaan=newSoal['pertanyaan']
+    soalData.pilihanJawaban=newSoal['pilihanJawaban']
+    soalData.kunciJawaban=newSoal['kunciJawaban']
+    soalData.kodePaket=newSoal['kodePaket']
+    session.add(soalData)
+    session.commit()
+    if soalData:
+        return newSoal
+    raise HTTPException(status_code=400, detail=f'Bad request')
+
+@app.delete('/soal/{kodePaket}/{kodeSoal}')
+async def delete_soal(kodeSoal: int, kodePaket: str, current_user: User = Depends(get_current_active_user)):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    soalData = session.query(SoalTable).\
+        filter(SoalTable.kodePaket == kodePaket and SoalTable.kodeSoal == kodeSoal).first()
+    if soalData:
+        session.query(SoalTable).filter(SoalTable.kodePaket == kodePaket and SoalTable.kodeSoal == kodeSoal).delete()
+        session.commit()
+        return soalData
+    raise HTTPException(status_code=400, detail=f'Bad request')
 
 #retrieve soal based on kodePaket
 @app.get('/soal/{kodePaket}')
 async def read_soal(kodePaket:str, current_user: User = Depends(get_current_active_user)):
-    return conn.execute(soal.select().where(soal.c.kodePaket == kodePaket)).fetchall
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    soal = session.query(SoalTable).\
+        filter(SoalTable.kodePaket == kodePaket).all()
+    return soal
 
 #masukin jawaban ke database
-@app.post('jawaban')
-async def write_jawaban(kodeSoal:int, username:str, current_user: User = Depends(get_current_active_user)):
-    return conn.execute(jawaban.insert().values(
-        username=jawaban.username,
-        kodePaket=jawaban.kodePaket,
-        kodeSoal=jawaban.kodeSoal,
-        jawaban=jawaban.jawaban,
-    )).fetchall()
-
-#retrieve kunci jawaban dari soal based on kodeSoal
-#@app.get('/jawaban/soal/{kodeSoal}')
-#async def read_kunci(kodeSoal:int, current_user: User = Depends(get_current_active_user)):
-    #
+@app.post('/jawaban')
+async def create_jawaban(jawaban: Jawaban, current_user: User = Depends(get_current_active_user)):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    newJawaban = jawaban.dict()
+    jawabanData = JawabanTable()
+    jawabanData.username=newJawaban['username']
+    jawabanData.kodePaket=newJawaban['kodePaket']
+    jawabanData.kodeSoal=newJawaban['kodeSoal']
+    jawabanData.jawaban=newJawaban['jawaban']
+    session.add(jawabanData)
+    session.commit()
+    if jawabanData:
+        return newJawaban
+    raise HTTPException(status_code=400, detail=f'Bad request')
 
 #retrieve jawaban based on kodeSoal
 @app.get('/jawaban/{kodeSoal}')
-async def read_jawaban(kodeSoal:int, username:str, current_user: User = Depends(get_current_active_user)):
-    return conn.execute(jawaban.select().where(jawaban.c.kodeSoal == kodeSoal)).fetchall
+async def read_jawaban(kodeSoal:int, current_user: User = Depends(get_current_active_user)):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    jawaban = session.query(JawabanTable).\
+        filter(JawabanTable.kodeSoal == kodeSoal).all()
+    return jawaban
 
 # Get hasil to diri sendiri by paketSoal
 @app.get("/hasil/me/{paket_id}")
-async def read_hasil_by_id(paket_id: str, current_user: User = Depends(get_current_active_user)):
+async def read_hasil_by_kodePaket(paket_id: str, current_user: User = Depends(get_current_active_user)):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     paket = session.query(HasilTable).\
-        filter(HasilTable.kodePaket == paket_id).first()
+        filter(HasilTable.kodePaket == paket_id and HasilTable.username == current_user.username).first()
     return paket
 
 # Post hasil TO diri sendiri based on paketSoal
 @app.post("/hasil", response_model=User)
-async def create_hasil(hasil: HasilCreate):
+async def create_hasil(hasil: HasilCreate, current_user: User = Depends(get_current_active_user)):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
     newHasil = hasil.dict()
     hasilData = HasilTable()
     hasilData.username = newHasil['username']
-    hasilData.kodePaket = hasilData['kodePaket']
-    hasilData.nilai = hasilData['nilai']
-    hasilData.ranking = hasilData['nilai']
+    hasilData.kodePaket = newHasil['kodePaket']
+    hasilData.nilai = newHasil['nilai']
+    hasilData.ranking = newHasil['nilai']
     session.add(hasilData)
     session.commit()
     if hasilData:
@@ -223,7 +261,7 @@ async def create_hasil(hasil: HasilCreate):
     
 # Get hasil TO diri sendiri based on paketSoal
 @app.get("/hasil/me/{paket_id}")
-async def read_hasil_by_paket_id(paket_id: str, current_user: User = Depends(get_current_active_user)):
+async def read_hasil_by_kodePaket(paket_id: str, current_user: User = Depends(get_current_active_user)):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     paket = session.query(HasilTable).\
@@ -232,13 +270,15 @@ async def read_hasil_by_paket_id(paket_id: str, current_user: User = Depends(get
     return paket
 
 # Post paket baru
-@app.post("/paket/create")
-async def new_paket(paket: PaketCreate):
+@app.post("/paket")
+async def create_paket(paket: PaketCreate, current_user: User = Depends(get_current_active_user)):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
     newPaket = paket.dict()
     paketData = PaketTable()
-    paketData.kodePaket = paketData['kodePaket']
-    paketData.tanggal = paketData['tanggal']
-    paketData.deskripsi = paketData['deskripsi']
+    paketData.kodePaket = newPaket['kodePaket']
+    paketData.tanggal = newPaket['tanggal']
+    paketData.deskripsi = newPaket['deskripsi']
     session.add(paketData)
     session.commit()
     if paketData:
@@ -246,14 +286,53 @@ async def new_paket(paket: PaketCreate):
     raise HTTPException(status_code=400, detail=f'Bad request')
     
 # Get paket all
-@app.get("/pakets/")
-async def read_pakets():
+@app.get("/paket")
+async def read_paket(current_user: User = Depends(get_current_active_user)):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
     paket = session.query(PaketTable).all()
     return paket
 
 # Get paket based paket_id
-@app.get("/pakets/{paket_id}")
-async def read_pakets(paket_id: str):
+@app.get("/paket/{paket_id}")
+async def read_paket(kode_paket: str, current_user: User = Depends(get_current_active_user)):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
     paket = session.query(PaketTable).\
-        filter(PaketTable.id == paket_id).first()
+        filter(PaketTable.kodePaket == kode_paket).first()
     return paket
+
+# Get paket based paket_id
+@app.delete("/paket/{paket_id}")
+async def delete_paket(kode_paket: str, current_user: User = Depends(get_current_active_user)):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    paket = session.query(PaketTable).\
+        filter(PaketTable.kodePaket == kode_paket).first()
+    if paket:
+        session.query(PaketTable).filter(PaketTable.kodePaket == kode_paket).delete()
+        session.commit()
+        return paket
+    raise HTTPException(status_code=400, detail=f'Bad request')
+
+@app.get("/pembelian/{username}")
+async def read_pembelian(username: str, current_user: User = Depends(get_current_active_user)):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    pembelian = session.query(PembelianTable).\
+        filter(PembelianTable.username == username).all()
+    return pembelian
+
+@app.post("/pembelian")
+async def create_pembelian(pembelian: Pembelian, current_user: User = Depends(get_current_active_user)):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    newPembelian = pembelian.dict()
+    pembelianData = PembelianTable()
+    pembelianData.kodePaket = newPembelian['kodePaket']
+    pembelianData.username = newPembelian['username']
+    session.add(pembelianData)
+    session.commit()
+    if pembelianData:
+        return newPembelian
+    raise HTTPException(status_code=400, detail=f'Bad request')

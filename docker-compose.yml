@@ -15,7 +15,8 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./docker/mysql/initdb.d:/docker-entrypoint-initdb.d
+      - ./docker/mysql/initdb.d/schema.sql:/docker-entrypoint-initdb.d/1.sql
+      - ./docker/mysql/initdb.d/testdata.sql:/docker-entrypoint-initdb.d/2.sql
       - ./docker/mysql/conf.d:/etc/mysql/conf.db
       - ./log/mysql:/var/log/mysql
     networks:
@@ -24,6 +25,8 @@ services:
   # FastAPI
   api:
     links:
+      - db
+    depends_on:
       - db
     container_name: "api"
     build: ./docker/api

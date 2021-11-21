@@ -1,1 +1,10 @@
 INSERT INTO user (username, hashed_password, email, name, disabled) VALUES ("asdf", "$2b$12$hGKDOwG56pxrtLj8644EHOEIrLHLc7T7JtwSmp.//cV12LuuEQuzu", "test@example.com", "Test", 0);
+INSERT INTO user (username, hashed_password, email, name, disabled) VALUES ("dummy1", "dummypass1", "dummy1@example.com", "Dummy 1", 0);
+INSERT INTO user (username, hashed_password, email, name, disabled) VALUES ("dummy2", "dummypass2", "dummy2@example.com", "Dummy 2", 0);
+INSERT INTO paketSoal (kodePaket, tanggal, deskripsi) VALUES ("MA01", "20 Desember 2021", "TO 1 Matematika");
+INSERT INTO soal (kodeSoal, pertanyaan, pilihanJawaban, kunciJawaban, kodePaket) VALUES (1, "1+1=...", "a. 1; b. 2; c. 3", "b", "MA01");
+INSERT INTO soal (kodeSoal, pertanyaan, pilihanJawaban, kunciJawaban, kodePaket) VALUES (2, "1+2=...", "a. 1; b. 2; c. 3", "c", "MA01");
+INSERT INTO jawaban (username, kodePaket, kodeSoal, jawaban) VALUES ("dummy1", "MA01", 1, "a");
+INSERT INTO jawaban (username, kodePaket, kodeSoal, jawaban) VALUES ("dummy1", "MA01", 2, "c");
+INSERT INTO pembelian (username, kodePaket) VALUES ("dummy1", "MA01");
+INSERT INTO hasil (username, kodePaket, nilai, ranking) VALUES ("dummy1", "MA01", 50, 1);

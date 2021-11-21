@@ -21,8 +21,6 @@ ENGINE = create_engine(
     echo=True
 )
 
-conn = engine.connect()
-
 session = scoped_session(
     sessionmaker(
         autocommit=False,

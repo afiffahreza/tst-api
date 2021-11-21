@@ -8,40 +8,44 @@ CREATE TABLE user (
     PRIMARY KEY (id)
 );
 
+CREATE TABLE paketSoal (
+    kodePaket VARCHAR(30) NOT NULL,
+    tanggal VARCHAR(255),
+    deskripsi VARCHAR(255),
+    PRIMARY KEY (kodePaket)
+);
+
 CREATE TABLE soal (
+    id INT NOT NULL AUTO_INCREMENT,
     kodeSoal INT NOT NULL,
-    pertanyaan VARCHAR(256) NOT NULL,
-    pilihanJawaban VARCHAR(256) NOT NULL,
-    kunciJawaban VARCHAR(256) NOT NULL,
-    kodePaket CHAR(16) NOT NULL,
-    PRIMARY KEY (kodeSoal)
-    FOREIGN KEY (kodePaket) REFERENCES paketSoal(kodePaket)
+    pertanyaan VARCHAR(255) NOT NULL,
+    pilihanJawaban VARCHAR(255) NOT NULL,
+    kunciJawaban VARCHAR(255) NOT NULL,
+    kodePaket VARCHAR(30) NOT NULL,
+    PRIMARY KEY (id)
 );
 
 CREATE TABLE jawaban (
-    username VARCHAR(30) NOT  NULL,
-    kodePaket CHAR(16) NOT NULL,
+    id INT NOT NULL AUTO_INCREMENT,
+    username VARCHAR(30) NOT NULL,
+    kodePaket VARCHAR(30) NOT NULL,
     kodeSoal INT NOT NULL,
-    jawaban INT,
-    PRIMARY KEY (username, kodePaket, kodeSoal),
-    FOREIGN KEY (username) REFERENCES user(username),
-    FOREIGN KEY (kodePaket) REFERENCES paketSoal(kodePaket),
-    FOREIGN KEY (kodeSoal) REFERENCES soal(kodeSoal)
+    jawaban VARCHAR(30),
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE pembelian (
+    id INT NOT NULL AUTO_INCREMENT,
+    username VARCHAR(30) NOT NULL,
+    kodePaket VARCHAR(30) NOT NULL,
+    PRIMARY KEY (id)
 );
 
 CREATE TABLE hasil (
-    username VARCHAR(30) NOT  NULL,
-    kodePaket CHAR(16) NOT NULL,
+    id INT NOT NULL AUTO_INCREMENT,
+    username VARCHAR(30) NOT NULL,
+    kodePaket VARCHAR(30) NOT NULL,
     nilai INT,
-    ranking INT ,
-    PRIMARY KEY (username, kodePaket),
-    FOREIGN KEY (username) REFERENCES userusername),
-    FOREIGN KEY (kodePaket) REFERENCES paketSoal(kodePaket),
-);
-
-CREATE TABLE paketSoal (
-    kodePaket CHAR(16) NOT NULL,
-    tanggal TIMESTAMP,
-    deskripsi VARCHAR(256),
-    PRIMARY KEY (kodePaket)
+    ranking INT,
+    PRIMARY KEY (id)
 );
