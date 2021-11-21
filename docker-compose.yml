@@ -5,7 +5,6 @@ services:
   db:
     container_name: "db"
     build: ./docker/mysql
-    image: tstapi.azurecr.io/db
     restart: always
     tty: true
     environment:
@@ -31,7 +30,6 @@ services:
       - db
     container_name: "api"
     build: ./docker/api
-    image: tstapi.azurecr.io/api
     ports:
       - "8000:8000"
     volumes:
